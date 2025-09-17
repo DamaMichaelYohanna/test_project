@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register | Test Project</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        font-family: "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .register-container {
+        background: #fff;
+        max-width: 400px;
+        margin: 60px auto;
+        padding: 32px 28px;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(40, 60, 120, 0.18);
+      }
+      .register-container h2 {
+        text-align: center;
+        margin-bottom: 24px;
+        color: #2575fc;
+        letter-spacing: 1px;
+      }
+      .form-group {
+        margin-bottom: 18px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #333;
+        font-weight: 500;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+      }
+      .form-group input:focus {
+        border-color: #2575fc;
+        outline: none;
+      }
+      .register-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .register-btn:hover {
+        background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%);
+      }
+      .login-link {
+        display: block;
+        text-align: center;
+        margin-top: 18px;
+        color: #2575fc;
+        text-decoration: none;
+        font-size: 0.98rem;
+      }
+      .errorlist {
+        color: #d32f2f;
+        margin-bottom: 10px;
+        list-style: none;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="register-container">
+      <h2>Create Your Account</h2>
+      {{error}}
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            required
+            placeholder="Enter your username"
+            value="{{ request.POST.username|default:'' }}"
+          />
+          {% if errors.username %}
+          <ul class="errorlist">
+            {% for error in errors.username %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="Enter your email"
+            value="{{ request.POST.email|default:'' }}"
+          />
+          {% if errors.email %}
+          <ul class="errorlist">
+            {% for error in errors.email %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="password1">Password</label>
+          <input
+            type="password"
+            id="password1"
+            name="password1"
+            required
+            placeholder="Create a password"
+          />
+          {% if errors.password1 %}
+          <ul class="errorlist">
+            {% for error in errors.password1 %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="password2">Confirm Password</label>
+          <input
+            type="password"
+            id="password2"
+            name="password2"
+            required
+            placeholder="Confirm your password"
+          />
+          {% if errors.password2 %}
+          <ul class="errorlist">
+            {% for error in errors.password2 %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        <button type="submit" class="register-btn">Register</button>
+      </form>
+      <a href="{% url 'login' %}" class="login-link"
+        >Already have an account? Log in</a
+      >
+    </div>
+  </body>
+</html>
