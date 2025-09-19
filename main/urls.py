@@ -1,5 +1,5 @@
 from django.urls import path
-from main.views import index_view, login_view, about_us, contact_us, register_view
+from main.views import index_view, login_view, about_us, contact_us, register_view, create_product
 
 urlpatterns = [
     path('', index_view, name='index'),
@@ -7,6 +7,7 @@ urlpatterns = [
     path('about',  about_us, name='about_us_page'),
     path('contact',  contact_us, name='contact_us_page'),
     path('register',  register_view, name='register'),
+    path("add-product", create_product, name='create_product')
 
 ]
 

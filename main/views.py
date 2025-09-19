@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
+from .models import Product
 
 def index_view(request):
-    return render(request, 'index.html')
+    products = Product.objects.all()
+    return render(request, 'index.html', {'products': products}) 
 
 
 def login_view(request):
@@ -41,3 +43,25 @@ def about_us(request):
 
 def contact_us(request):
     return render(request, 'contact_us.html')
+
+
+# views here are for products
+def create_product(request):
+    """function to upload a new product"""
+    if request.method == "POST":
+        product_name = request.POST['name']
+        product_description = request.POST['description']
+        product_price = request.POST['price']
+        product_image = request.FILES['image']
+        new_product = Product(
+            name=product_name,
+            description=product_description,
+            price=product_price,
+            image=product_image
+        )
+        new_product.save()
+        print(product_name, product_description, product_price, product_image)
+
+        return redirect('/')
+
+    return render(request, 'add_product.html')
