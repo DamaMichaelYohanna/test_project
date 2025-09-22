@@ -5,7 +5,11 @@ from .models import Product
 
 def index_view(request):
     products = Product.objects.all()
-    return render(request, 'index.html', {'products': products}) 
+    return render(request, 'index.html', {'products': products})
+
+def detail_page(request, pk):
+    product = Product.objects.get(pk=pk)
+    return render(request, 'detail_page.html', {'product': product}) 
 
 
 def login_view(request):
