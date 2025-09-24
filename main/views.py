@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
-from .models import Product
+from django.contrib import messages
+from .models import Product, Message
 
 def index_view(request):
     products = Product.objects.all()
@@ -21,8 +22,10 @@ def login_view(request):
                              password=password_value)
         if user is not None:
             login(request, user)
+            messages.success(request, 'You have logged in successfully!')
             return redirect("/")
         else:
+            messages.error(request, 'Login failed. Please try again.')
             return render(request, 'login.html', {'error': 'Invalid username or password'})
   
     return render(request, 'login.html')
@@ -35,17 +38,29 @@ def register_view(request):
         password2 = request.POST['password2']
         if password1 != password2:
             return render(request, 'register.html', {'error': 'Passwords do not match'})
-        user = User.objects.create_user(username=username, email=email, password=password1)
-        user.first_name = 'Test First Name'
-        user.last_name = 'Test Last Name'
-        user.save()
-        return redirect('/login')
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password1)
+            user.first_name = 'Test First Name'
+            user.last_name = 'Test Last Name'
+            user.save()
+            messages.success(request, 'Registration successful! Please log in.')
+            return redirect('/login')
+        except:
+            return render(request, 'register.html', {'error': 'Username already exists'})
     return render(request, 'register.html')
 
 def about_us(request):
     return render(request, 'about_us.html')
 
 def contact_us(request):
+    if request.method == 'POST':
+        name = request.POST['name']
+        email = request.POST['email']
+        message = request.POST['message']
+        message = Message.objects.create(name=name, email=email, message=message)
+        message.save()
+        messages.success(request, 'Your message has been sent successfully!')
+        return redirect('/')
     return render(request, 'contact_us.html')
 
 
