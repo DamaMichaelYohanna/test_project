@@ -17,3 +17,14 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} <{self.email}>"
+    
+
+class Profile(models.Model):
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
+    phone_no = models.CharField(max_length=15)
+    address = models.CharField(max_length=100,)
+    image = models.ImageField()
+    is_vendor = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.username
