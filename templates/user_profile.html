@@ -1,0 +1,54 @@
+{% extends "base.html" %} {% block content %}
+<div class="profile-container">
+  {% if user.profile.image %}
+  <img
+    src="{{ user.profile.image.url }}"
+    alt="Avatar"
+    class="avatar"
+    style="width: 150px"
+  />
+  {% else %}
+  <img src="https://via.placeholder.com/100" alt="Avatar" class="avatar" />
+  {% endif %}
+  <h2>{{ user.get_full_name|default:user.username }}</h2>
+  <div class="profile-info">
+    <span class="profile-label">Username:</span> {{ user.username }}
+  </div>
+  <div class="profile-info">
+    <span class="profile-label">Email:</span> {{ user.email }}
+  </div>
+  {% if user_profile %}
+  <div class="profile-info">
+    <span class="profile-label">Address:</span> {{ user_profile.address }}
+  </div>
+  {% endif %}
+  <div class="profile-info">
+    <span class="profile-label">Phone Number:</span> {{ user_profile.phone_no }}
+  </div>
+  <!-- Add more fields as needed -->
+</div>
+{% endblock %} {% block extra_css %}
+<style>
+  .profile-container {
+    max-width: 500px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+  }
+  .profile-info {
+    margin-bottom: 10px;
+  }
+  .profile-label {
+    font-weight: bold;
+  }
+</style>
+{% endblock %}

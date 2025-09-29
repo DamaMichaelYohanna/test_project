@@ -84,3 +84,22 @@ def create_product(request):
         return redirect('/')
 
     return render(request, 'add_product.html')
+
+def user_profile(request):
+    user_detail = User.objects.get(username=request.user.username)
+    user_profile = user_detail.profile
+    return render(request, 'user_profile.html', 
+                  {'user_detail': user_detail,
+                   "user_profile": user_profile})
+
+def vendor_profile(request):
+    user_detail = User.objects.get(username=request.user.username)
+    if user_detail.profile.is_vendor:
+        pass
+    else:
+        return redirect('user_profile')
+    user_profile = user_detail.profile
+    return render(request, 'user_profile.html', 
+                  {'user_detail': user_detail,
+                   "user_profile": user_profile})
+    return render(request, 'vendor_profile.html')
