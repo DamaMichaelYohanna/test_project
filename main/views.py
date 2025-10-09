@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Product, Message
+from .models import Product, Message, Profile
+from django.contrib.auth.decorators import login_required
 
 def index_view(request):
     products = Product.objects.all()
@@ -43,6 +44,11 @@ def register_view(request):
             user.first_name = 'Test First Name'
             user.last_name = 'Test Last Name'
             user.save()
+            profile = Profile.objects.create(user=user, is_vendor=False)
+            profile.phone_no = request.POST.get('phone_no', '09876543210')
+            profile.address = request.POST.get('address', 'Default Address')
+            profile.image = request.FILES.get('image', 'default.jpg') 
+            profile.save
             messages.success(request, 'Registration successful! Please log in.')
             return redirect('/login')
         except:
@@ -85,6 +91,7 @@ def create_product(request):
 
     return render(request, 'add_product.html')
 
+@login_required
 def user_profile(request):
     user_detail = User.objects.get(username=request.user.username)
     user_profile = user_detail.profile
