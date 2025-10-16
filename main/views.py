@@ -1,14 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib import messages
+from .models import Product, Message, Profile, Cart
+from django.contrib.auth.decorators import login_required
+
 # Logout view
 def logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out.')
     return redirect('/login')
-from django.contrib.auth.models import User
-from django.contrib import messages
-from .models import Product, Message, Profile
-from django.contrib.auth.decorators import login_required
 
 def index_view(request):
     products = Product.objects.all()
@@ -114,4 +115,12 @@ def vendor_profile(request):
     return render(request, 'user_profile.html', 
                   {'user_detail': user_detail,
                    "user_profile": user_profile})
-    return render(request, 'vendor_profile.html')
+
+@login_required
+def add_to_cart(request, pk):
+    product = Product.objects.get(id=pk)
+    cart, _ = Cart.objects.get_or_create(customer=request.user)
+    cart.items.add(product)
+    messages.success(request, "Product added to cart successfully")
+    return redirect('/')
+4
