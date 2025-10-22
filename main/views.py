@@ -123,4 +123,8 @@ def add_to_cart(request, pk):
     cart.items.add(product)
     messages.success(request, "Product added to cart successfully")
     return redirect('/')
-4
+
+@login_required
+def cart_view(request):
+    cart, _ = Cart.objects.get_or_create(customer=request.user)
+    return render(request, 'cart.html', {'cart': cart})

@@ -1,0 +1,446 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+<style>
+  body {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    font-family: "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  .cart-container {
+    background: #fff;
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(40, 60, 120, 0.12);
+  }
+  .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .cart-header h2 {
+    color: #2575fc;
+    letter-spacing: 1px;
+    margin: 0;
+  }
+  .cart-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cart-item {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+  }
+  .cart-item img {
+    width: 120px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  .item-info {
+    flex: 1;
+  }
+  .item-title {
+    font-weight: 600;
+    color: #2575fc;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+  }
+  .item-desc {
+    color: #444;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    max-height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn {
+    border: 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+    transition: background 0.15s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn.secondary {
+    background: #e5e7eb;
+    color: #111;
+    font-weight: 600;
+  }
+  .price {
+    font-weight: 700;
+    color: #111;
+    margin-left: 8px;
+    min-width: 90px;
+    text-align: right;
+  }
+  .cart-summary {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    align-items: center;
+  }
+  .total-box {
+    background: #f1f5f9;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    color: #111;
+  }
+  .empty {
+    text-align: center;
+    padding: 36px 8px;
+    color: #333;
+  }
+  @media (max-width: 700px) {
+    .cart-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .price {
+      text-align: left;
+    }
+    .cart-summary {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>
+
+<div class="cart-container">
+  <div class="cart-header">
+    <h2>Your Cart</h2>
+    <div>
+      <a href="{% url 'index' %}" class="btn secondary">Continue Shopping</a>
+    </div>
+  </div>
+
+  {% if items %} {% with products=items %} {% elif cart %} {% with
+  products=cart.items.all %} {% else %} {% with products=None %} {% endif %} {%
+  if products %}
+  <div class="cart-list" id="cart-list">
+    {% for product in products %}
+    <div class="cart-item" data-price="{{ product.price|floatformat:2 }}">
+      {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" />
+      {% else %}
+      <img
+        src="https://via.placeholder.com/120x80?text=No+Image"
+        alt="No image"
+      />
+      {% endif %}
+      <div class="item-info">
+        <div class="item-title">{{ product.name }}</div>
+        <div class="item-desc">{{ product.description|truncatechars:120 }}</div>
+      </div>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 8px;
+        "
+      >
+        <div class="price">${{ product.price }}</div>
+        <div class="item-actions">
+          <a
+            href="{% url 'detail_page' product.id %}"
+            class="btn secondary"
+            style="background: #fff; border: 1px solid #d1d5db; color: #2575fc"
+            >View</a
+          >
+
+          <form
+            method="post"
+            action="{% url 'cart_view' %}"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <input type="hidden" name="remove" value="{{ product.id }}" />
+            <button type="submit" class="btn" style="background: #ef4444">
+              Remove
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="cart-summary">
+    <div class="total-box">Subtotal: <span id="cart-total">$0.00</span></div>
+    <form method="post" action="#" style="margin: 0">
+      {% csrf_token %}
+      <button
+        type="button"
+        class="btn"
+        onclick="alert('Checkout not implemented')"
+      >
+        Proceed to Checkout
+      </button>
+    </form>
+  </div>
+
+  {% else %}
+  <div class="empty">
+    <p>Your cart is empty.</p>
+    <a href="{% url 'index' %}" class="btn">Shop Now</a>
+  </div>
+  {% endif %} {% endwith %}
+</div>
+
+<script>
+  // compute subtotal if view didn't provide it
+  (function () {
+    const totalEl = document.getElementById("cart-total");
+    if (!totalEl) return;
+    const items = document.querySelectorAll("#cart-list .cart-item");
+    let sum = 0;
+    items.forEach((it) => {
+      const p = parseFloat(it.getAttribute("data-price") || "0");
+      if (!isNaN(p)) sum += p;
+    });
+    totalEl.textContent = "$" + sum.toFixed(2);
+  })();
+</script>
+{% endblock %} ```// filepath:
+c:\Users\Dama-PC\Documents\test_project\templates\cart.html {% extends
+'base.html' %} {% load static %} {% block content %}
+<style>
+  body {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    font-family: "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  .cart-container {
+    background: #fff;
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(40, 60, 120, 0.12);
+  }
+  .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .cart-header h2 {
+    color: #2575fc;
+    letter-spacing: 1px;
+    margin: 0;
+  }
+  .cart-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cart-item {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+  }
+  .cart-item img {
+    width: 120px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  .item-info {
+    flex: 1;
+  }
+  .item-title {
+    font-weight: 600;
+    color: #2575fc;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+  }
+  .item-desc {
+    color: #444;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    max-height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn {
+    border: 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+    transition: background 0.15s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn.secondary {
+    background: #e5e7eb;
+    color: #111;
+    font-weight: 600;
+  }
+  .price {
+    font-weight: 700;
+    color: #111;
+    margin-left: 8px;
+    min-width: 90px;
+    text-align: right;
+  }
+  .cart-summary {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    align-items: center;
+  }
+  .total-box {
+    background: #f1f5f9;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    color: #111;
+  }
+  .empty {
+    text-align: center;
+    padding: 36px 8px;
+    color: #333;
+  }
+  @media (max-width: 700px) {
+    .cart-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .price {
+      text-align: left;
+    }
+    .cart-summary {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>
+
+<div class="cart-container">
+  <div class="cart-header">
+    <h2>Your Cart</h2>
+    <div>
+      <a href="{% url 'index' %}" class="btn secondary">Continue Shopping</a>
+    </div>
+  </div>
+
+  {% if cart %} {% with products=cart.items.all %} {% else %} {% with
+  products=None %} {% endif %} {%if products %}
+  <div class="cart-list" id="cart-list">
+    {% for product in products %}
+    <div class="cart-item" data-price="{{ product.price|floatformat:2 }}">
+      {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" />
+      {% else %}
+      <img
+        src="https://via.placeholder.com/120x80?text=No+Image"
+        alt="No image"
+      />
+      {% endif %}
+      <div class="item-info">
+        <div class="item-title">{{ product.name }}</div>
+        <div class="item-desc">{{ product.description|truncatechars:120 }}</div>
+      </div>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 8px;
+        "
+      >
+        <div class="price">${{ product.price }}</div>
+        <div class="item-actions">
+          <a
+            href="{% url 'detail_page' product.id %}"
+            class="btn secondary"
+            style="background: #fff; border: 1px solid #d1d5db; color: #2575fc"
+            >View</a
+          >
+
+          <form
+            method="post"
+            action="{% url 'cart_view' %}"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <input type="hidden" name="remove" value="{{ product.id }}" />
+            <button type="submit" class="btn" style="background: #ef4444">
+              Remove
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="cart-summary">
+    <div class="total-box">Subtotal: <span id="cart-total">$0.00</span></div>
+    <form method="post" action="#" style="margin: 0">
+      {% csrf_token %}
+      <button
+        type="button"
+        class="btn"
+        onclick="alert('Checkout not implemented')"
+      >
+        Proceed to Checkout
+      </button>
+    </form>
+  </div>
+
+  {% else %}
+  <div class="empty">
+    <p>Your cart is empty.</p>
+    <a href="{% url 'index' %}" class="btn">Shop Now</a>
+  </div>
+  {% endif %} {% endwith %}
+</div>
+
+<script>
+  // compute subtotal if view didn't provide it
+  (function () {
+    const totalEl = document.getElementById("cart-total");
+    if (!totalEl) return;
+    const items = document.querySelectorAll("#cart-list .cart-item");
+    let sum = 0;
+    items.forEach((it) => {
+      const p = parseFloat(it.getAttribute("data-price") || "0");
+      if (!isNaN(p)) sum += p;
+    });
+    totalEl.textContent = "$" + sum.toFixed(2);
+  })();
+</script>
+{% endblock %}
