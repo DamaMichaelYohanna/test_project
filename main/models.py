@@ -28,3 +28,12 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+    
+class Cart(models.Model):
+    """Database table for adding items to cart"""
+    customer = models.OneToOneField('auth.User', on_delete=models.CASCADE)
+    items = models.ManyToManyField(Product)
+    time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.customer}'s cart"

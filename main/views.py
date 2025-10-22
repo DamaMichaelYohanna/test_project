@@ -1,8 +1,15 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Product, Message
+from .models import Product, Message, Profile, Cart
+from django.contrib.auth.decorators import login_required
+
+# Logout view
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'You have been logged out.')
+    return redirect('/login')
 
 def index_view(request):
     products = Product.objects.all()
@@ -43,6 +50,11 @@ def register_view(request):
             user.first_name = 'Test First Name'
             user.last_name = 'Test Last Name'
             user.save()
+            profile = Profile.objects.create(user=user, is_vendor=False)
+            profile.phone_no = request.POST.get('phone_no', '09876543210')
+            profile.address = request.POST.get('address', 'Default Address')
+            profile.image = request.FILES.get('image', 'default.jpg') 
+            profile.save
             messages.success(request, 'Registration successful! Please log in.')
             return redirect('/login')
         except:
@@ -85,6 +97,7 @@ def create_product(request):
 
     return render(request, 'add_product.html')
 
+@login_required
 def user_profile(request):
     user_detail = User.objects.get(username=request.user.username)
     user_profile = user_detail.profile
@@ -102,4 +115,25 @@ def vendor_profile(request):
     return render(request, 'user_profile.html', 
                   {'user_detail': user_detail,
                    "user_profile": user_profile})
-    return render(request, 'vendor_profile.html')
+
+@login_required
+def add_to_cart(request, pk):
+    product = Product.objects.get(id=pk)
+    cart, _ = Cart.objects.get_or_create(customer=request.user)
+    cart.items.add(product)
+    messages.success(request, "Product added to cart successfully")
+    return redirect('/')
+
+@login_required
+def remove_from_cart(request, pk):
+    product = Product.objects.get(id=pk)
+    cart, _ = Cart.objects.get_or_create(customer=request.user)
+    cart.items.remove(product)
+    messages.success(request, "Product removed from cart successfully")
+    return redirect('/')
+
+@login_required
+def cart_view(request):
+    cart, _ = Cart.objects.get_or_create(customer=request.user)
+    print(cart.items.all())
+    return render(request, 'cart.html', {'cart': cart})
