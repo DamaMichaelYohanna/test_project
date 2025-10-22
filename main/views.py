@@ -125,6 +125,15 @@ def add_to_cart(request, pk):
     return redirect('/')
 
 @login_required
+def remove_from_cart(request, pk):
+    product = Product.objects.get(id=pk)
+    cart, _ = Cart.objects.get_or_create(customer=request.user)
+    cart.items.remove(product)
+    messages.success(request, "Product removed from cart successfully")
+    return redirect('/')
+
+@login_required
 def cart_view(request):
     cart, _ = Cart.objects.get_or_create(customer=request.user)
+    print(cart.items.all())
     return render(request, 'cart.html', {'cart': cart})
